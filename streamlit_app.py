@@ -203,103 +203,40 @@ ss("dark_mode", False)
 ss("editing_pid", None)
 ss("ls_import", None)   # holds JSON string arriving from localStorage
 
-# ── theme ────────────────────────────────────────────────────────────────────
+# ── theme: defer to Streamlit native light/dark ──────────────────────────────
+# Use CSS variables so inline HTML adapts automatically to both modes.
+TEXT     = "var(--text-color)"
+TEXT_MUT = "var(--text-color-secondary, #64748b)"
+BG       = "var(--background-color)"
+BG2      = "var(--secondary-background-color)"
+BORDER   = "var(--secondary-background-color)"
+DIVIDER  = "var(--secondary-background-color)"
+CARD_BG  = "var(--secondary-background-color)"
+HEADER_BG= "var(--secondary-background-color)"
+INPUT_BG = "var(--secondary-background-color)"
+BAR_BG   = "var(--secondary-background-color)"
+Q_DIV    = "#86c68d"
+TICK_MUT = "var(--text-color-secondary, #94a3b8)"
 
-dark = st.session_state.dark_mode
-
-if dark:
-    BG       = "#060f1c"
-    BG2      = "#0d1f35"
-    BG3      = "#1a3a20"
-    BORDER   = "#1e4d2b"
-    TEXT     = "#e2e8f0"
-    TEXT_MUT = "#64748b"
-    DIVIDER  = "#1e3a50"
-    CARD_BG  = "#0d1f35"
-    HEADER_BG= "#060f1c"
-    INPUT_BG = "#0d1f35"
-    BAR_BG   = "#060f1c"
-    Q_DIV    = "#2d6a35"
-    TICK_MUT = "#334155"
-else:
-    BG       = "#f8fafc"
-    BG2      = "#ffffff"
-    BG3      = "#e8f5e9"
-    BORDER   = "#c3e6cb"
-    TEXT     = "#1e293b"
-    TEXT_MUT = "#64748b"
-    DIVIDER  = "#e2e8f0"
-    CARD_BG  = "#ffffff"
-    HEADER_BG= "#f1f5f9"
-    INPUT_BG = "#ffffff"
-    BAR_BG   = "#f1f5f9"
-    Q_DIV    = "#86c68d"
-    TICK_MUT = "#94a3b8"
-
-# ── inject global CSS ─────────────────────────────────────────────────────────
-
-BTN_SEC_BG   = "#1e293b" if dark else "#f8fafc"
-BTN_SEC_TEXT = "#f1f5f9" if dark else "#1e293b"
-BTN_SEC_BOR  = "#334155" if dark else "#94a3b8"
-BTN_SEC_HOV  = "#334155" if dark else "#e2e8f0"
-
-st.markdown(f"""
+st.markdown("""
 <style>
-  /* Remove default top padding that causes white bar */
-  .stApp {{ background-color: {BG}; color: {TEXT}; }}
-  .block-container {{ padding-top: 3.5rem !important; background-color: {BG}; }}
-  header[data-testid="stHeader"] {{ background: {BG} !important; }}
-  div[data-testid="stToolbar"] {{ background: {BG} !important; }}
-
-  /* ── Buttons ── */
-  button[kind="secondary"], button[kind="secondaryFormSubmit"] {{
+  /* Layout */
+  .block-container { padding-top: 3.5rem !important; }
+  /* Buttons — monospace font only */
+  button[kind="primary"], button[kind="secondary"],
+  button[kind="secondaryFormSubmit"] {
     font-family: monospace !important;
     font-size: 12px !important;
-    background-color: {BTN_SEC_BG} !important;
-    color: {BTN_SEC_TEXT} !important;
-    border: 1px solid {BTN_SEC_BOR} !important;
-  }}
-  button[kind="secondary"]:hover {{
-    background-color: {BTN_SEC_HOV} !important;
-  }}
-  button[kind="primary"] {{
-    font-family: monospace !important;
-    font-size: 12px !important;
-  }}
-
-  /* ── Inputs ── */
-  div[data-testid="stHorizontalBlock"] {{ gap: 4px; }}
-  .stTextInput > div > div > input {{
-    background-color: {INPUT_BG} !important;
-    color: {TEXT} !important;
-    border-color: {DIVIDER} !important;
-  }}
-  .stSelectbox > div > div > div {{
-    background-color: {INPUT_BG} !important;
-    color: {TEXT} !important;
-  }}
-  .stNumberInput > div > div > input {{
-    background-color: {INPUT_BG} !important;
-    color: {TEXT} !important;
-  }}
-  .stTextArea > div > div > textarea {{
-    background-color: {INPUT_BG} !important;
-    color: {TEXT} !important;
-  }}
-
-  /* ── Text ── */
-  .stCheckbox label span {{ color: {TEXT} !important; }}
-  .stRadio label span {{ color: {TEXT} !important; }}
-  .stMarkdown p {{ color: {TEXT}; }}
-  h1, h2, h3 {{ font-family: monospace !important; color: {TEXT} !important; }}
-  .stCaption p {{ color: {TEXT_MUT} !important; }}
-  .stProgress > div > div {{ background-color: {DIVIDER} !important; }}
-
-  @media print {{
-    .no-print {{ display: none !important; }}
-    .stApp {{ background: white !important; }}
-    header, footer, [data-testid="stToolbar"] {{ display: none !important; }}
-  }}
+  }
+  /* Spacing */
+  div[data-testid="stHorizontalBlock"] { gap: 4px; }
+  /* Headings */
+  h1, h2, h3 { font-family: monospace !important; }
+  @media print {
+    .no-print { display: none !important; }
+    .stApp { background: white !important; }
+    header, footer, [data-testid="stToolbar"] { display: none !important; }
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -329,7 +266,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-tab_col1, tab_col2, _ = st.columns([1, 1, 8])
+tab_col1, tab_col2, tab_col3, _ = st.columns([1, 1, 1, 7])
 with tab_col1:
     if st.button("👥 Squad", use_container_width=True,
                  type="primary" if st.session_state.tab == "squad" else "secondary"):
@@ -339,6 +276,11 @@ with tab_col2:
     if st.button("⚽ Match", use_container_width=True,
                  type="primary" if st.session_state.tab == "match" else "secondary"):
         st.session_state.tab = "match"
+        st.rerun()
+with tab_col3:
+    if st.button("📖 Guide", use_container_width=True,
+                 type="primary" if st.session_state.tab == "guide" else "secondary"):
+        st.session_state.tab = "guide"
         st.rerun()
 
 st.divider()
@@ -1361,3 +1303,166 @@ elif st.session_state.tab == "match":
                         st.rerun()
                     except Exception as ex:
                         st.error(f"AI generation failed: {ex}")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GUIDE TAB
+# ══════════════════════════════════════════════════════════════════════════════
+
+elif st.session_state.tab == "guide":
+
+    def section(title, color):
+        st.markdown(
+            f'<div style="font-family:monospace;font-size:11px;font-weight:700;'
+            f'letter-spacing:3px;color:{color};margin-top:24px;margin-bottom:6px">'
+            f'{title}</div>',
+            unsafe_allow_html=True
+        )
+
+    def card(icon, heading, body, color):
+        st.markdown(
+            f'<div style="background:{CARD_BG};border:1px solid {BORDER};border-left:4px solid {color};'
+            f'border-radius:8px;padding:12px 16px;margin-bottom:8px">'
+            f'<div style="font-family:monospace;font-size:13px;font-weight:700;color:{color};margin-bottom:4px">'
+            f'{icon} {heading}</div>'
+            f'<div style="font-family:monospace;font-size:12px;color:{TEXT};line-height:1.7">{body}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+    def step(num, text, color):
+        st.markdown(
+            f'<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:8px">'
+            f'<div style="min-width:26px;height:26px;border-radius:50%;background:{color};'
+            f'display:flex;align-items:center;justify-content:center;'
+            f'font-family:monospace;font-size:11px;font-weight:700;color:#fff">{num}</div>'
+            f'<div style="font-family:monospace;font-size:12px;color:{TEXT};line-height:1.7;padding-top:3px">{text}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+    # ── Hero banner ─────────────────────────────────────────────────────────
+    st.markdown(
+        f'<div style="background:linear-gradient(135deg,{CARD_BG},{BG2});'
+        f'border:1px solid {BORDER};border-radius:12px;padding:24px 28px;margin-bottom:16px">'
+        f'<div style="font-family:monospace;font-size:26px;font-weight:700;color:{TEXT}">🏑 Hockey Manager</div>'
+        f'<div style="font-family:monospace;font-size:13px;color:{TEXT_MUT};margin-top:6px;line-height:1.8">'
+        f'Plan your substitutions, track playing time, and generate fair rotation schedules for field hockey matches.<br>'
+        f'Works best on a tablet or desktop. All data stays in your browser — nothing is sent to a server.</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    left_col, right_col = st.columns([1, 1])
+
+    with left_col:
+
+        # ── Quick start ──────────────────────────────────────────────────────
+        section("QUICK START — 5 STEPS", "#16a34a")
+        step(1, "<b>Squad tab</b> — Add your players (name + number). Use <b>🧪 Load Test</b> to try it with sample data.", "#16a34a")
+        step(2, "<b>Match tab → Setup</b> — Choose quarter length, break time, and formation.", "#2563eb")
+        step(3, "<b>Setup → Match Squad</b> — Tick the 18 players attending and assign each a position.", "#7c3aed")
+        step(4, "<b>Sub Sheet → ⚡ Auto Generate</b> — Instantly creates a fair rotation schedule.", "#d97706")
+        step(5, "<b>Adjust or print</b> — Tweak individual times with the ▼ editor, then hit 🖨️ Print Sheet.", "#dc2626")
+
+        # ── Squad tab ────────────────────────────────────────────────────────
+        section("👥 SQUAD TAB", "#2563eb")
+        card("➕", "Adding players",
+             "Type a shirt number and full name, then click <b>➕ Add</b>.<br>"
+             "Players are saved to your roster for all future matches.",
+             "#2563eb")
+        card("✕", "Removing players",
+             "Click the <b>✕</b> button next to any player to remove them from the roster.",
+             "#dc2626")
+        card("🧪", "Test data",
+             "Click <b>🧪 Load Test</b> to populate 18 sample players so you can explore the app without entering real names.",
+             "#059669")
+
+        # ── Save / Load ──────────────────────────────────────────────────────
+        section("💾 SAVE / LOAD TEAM", "#d97706")
+        card("💾", "Saving on the same browser",
+             "Open the <b>💾 Save / Load Team</b> panel, type a team name (e.g. <i>U16 Greens</i>), and click Save.<br>"
+             "The roster is stored in your browser's local storage and will survive page refreshes.",
+             "#d97706")
+        card("📋", "Sharing to another device",
+             "Copy the JSON shown in the <b>📋 Copy this to save/share</b> box.<br>"
+             "On the other device, paste it into the Load panel and click <b>📂 Load Team</b>.",
+             "#7c3aed")
+
+    with right_col:
+
+        # ── Match setup ──────────────────────────────────────────────────────
+        section("⚙️ MATCH SETUP", "#7c3aed")
+        card("⏱️", "Quarter length",
+             "Choose from 10 / 12 / 15 / 20 min presets or type a custom value.<br>"
+             "The app calculates total match time as 4 × quarter length.",
+             "#7c3aed")
+        card("😴", "Min break time",
+             "The minimum minutes a player must rest before coming back on.<br>"
+             "GKs are exempt and play full halves (or the whole match if only one).",
+             "#059669")
+        card("🔢", "Formation",
+             "Pick a preset (4-3-3, 4-4-2 etc.) or choose <b>Custom</b> to set exact player counts per position.<br>"
+             "The on-field count bar will turn red if the schedule ever exceeds this number.",
+             "#2563eb")
+        card("✅", "Match squad",
+             "Tick up to 18 players, then use the dropdown to assign each a position.<br>"
+             "Players without a position will trigger a warning — they won't be included in auto-generate.",
+             "#dc2626")
+
+        # ── Sub sheet ────────────────────────────────────────────────────────
+        section("📋 SUB SHEET", "#dc2626")
+        card("⚡", "Auto Generate",
+             "Creates a staggered rotation so each position group subs at different times.<br>"
+             "Playing time is spread fairly across the squad. GKs are handled separately.",
+             "#16a34a")
+        card("▼", "Editing a player's times",
+             "Click the <b>▼ Xm Y%</b> button next to a player's bar to expand their segment editor.<br>"
+             "Use the <b>On / Off</b> number fields to adjust when they enter and leave.<br>"
+             "Click <b>＋ Add segment</b> to add a second stint, or <b>✕</b> to delete one.",
+             "#d97706")
+        card("✏️", "Edit Times panel",
+             "Click <b>✏️ Edit Times</b> for a text-based editor — type segments as <code>0-30, 35-60</code>.<br>"
+             "Useful for quickly setting multiple players at once.",
+             "#7c3aed")
+        card("🖨️", "Print Sheet",
+             "Generates a landscape A4 page with the Gantt chart and substitution events table.<br>"
+             "The print dialog opens automatically in a new window.",
+             "#2563eb")
+        card("🤖", "AI Generate",
+             "Enter your Anthropic API key and any special constraints (e.g. <i>Emma needs 45+ mins</i>).<br>"
+             "The AI will build a custom schedule respecting your requirements.",
+             "#059669")
+
+        # ── Reading the Gantt ────────────────────────────────────────────────
+        section("📊 READING THE GANTT", "#059669")
+        card("🟩", "On-field count bar",
+             "<span style='color:#16a34a'>■ Green</span> = correct number on field · "
+             "<span style='color:#d97706'>■ Amber</span> = too few · "
+             "<span style='color:#dc2626'>■ Red</span> = too many.<br>"
+             "Aim for a fully green bar across all 60 minutes.",
+             "#059669")
+        card("📏", "Bar labels",
+             "Wide segments show the start–end time inside the bar.<br>"
+             "Narrow segments show a small label <i>above</i> the bar to keep things readable.<br>"
+             "Sub-from labels appear <i>below</i> the bar (e.g. ↑JSM Q2:05 = subbed for JSM with 5min left in Q2).",
+             "#2563eb")
+
+    # ── Positions key ────────────────────────────────────────────────────────
+    section("🎨 POSITION COLOUR KEY", TEXT_MUT)
+    pos_cols = st.columns(5)
+    for i, (pk, pv) in enumerate(POS.items()):
+        with pos_cols[i]:
+            st.markdown(
+                f'<div style="text-align:center;background:{pv["color"]}18;'
+                f'border:1px solid {pv["color"]}55;border-radius:8px;padding:10px 4px">'
+                f'<div style="font-size:20px;font-weight:700;color:{pv["color"]};font-family:monospace">{pk}</div>'
+                f'<div style="font-size:10px;color:{pv["color"]};font-family:monospace">{pv["label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+    st.markdown(
+        f'<div style="font-family:monospace;font-size:10px;color:{TEXT_MUT};'
+        f'text-align:center;margin-top:24px">Hockey Manager · built with Streamlit · all data stored locally in your browser</div>',
+        unsafe_allow_html=True
+    )
