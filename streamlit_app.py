@@ -88,63 +88,96 @@ def auto_generate(squad_players, pos_map, total, brk, qm, fmt):
                     schedule[p["id"]] = [(start, end)]
             continue
 
-        # Stagger each position group by brk*index so they never overlap.
-        # e.g. brk=5: CD subs at 5,10,20,25,35,40,55,60
-        #              WD subs at 10,15,25,30,40,45,55,60  etc.
-        group_idx = field_positions.index(pk)  # 0=CD,1=WD,2=MID,3=ATT
-        base_offset = (group_idx * brk) % qm   # spread across the quarter
+        # ── Max continuous stint: evenly caps how long anyone stays on ─────────
+        # e.g. with 3 players for 2 slots over 60 min: fair = 40 min each
+        # max_stint caps any single continuous run to ~2/3 of fair share,
+        # floored at qm so we never create chaos with tiny forced subs.
+        n = len(players)
+        fair_mins = round((slots / n) * total) if n > slots else total
+        max_stint = max(qm, min(qm * 2, round(fair_mins * 0.7)))
+
+        # Stagger each position group so different groups never all sub together
+        group_idx   = field_positions.index(pk)
+        base_offset = (group_idx * brk) % qm
 
         sub_times = set([0, total])
         for q in range(4):
             qs = q * qm
-            t = qs + base_offset
+            t  = qs + base_offset
             if t == qs:
-                t += brk   # don't put a sub right at quarter start (chaos)
+                t += brk
             while t < (q + 1) * qm:
                 sub_times.add(t)
                 t += brk
         sub_times = sorted(sub_times)
+        intervals  = list(zip(sub_times[:-1], sub_times[1:]))
 
-        intervals = list(zip(sub_times[:-1], sub_times[1:]))
-
-        mins_on  = {p["id"]: 0          for p in players}
-        last_off = {p["id"]: -(brk + 1) for p in players}  # all eligible from kick-off
+        mins_on     = {p["id"]: 0          for p in players}
+        last_off    = {p["id"]: -(brk + 1) for p in players}
+        stint_start = {p["id"]: None        for p in players}
 
         for p in players:
             schedule[p["id"]] = []
 
-        # Starters = first `slots` in the list
         on_field = [p["id"] for p in players[:min(slots, len(players))]]
+        for pid in on_field:
+            stint_start[pid] = 0
 
         for start, end in intervals:
             dur = end - start
 
-            # Only attempt ONE swap per sub opportunity
-            # Find best rested sub (least total mins played)
-            rested = [p for p in players if p["id"] not in on_field
-                      and start - last_off[p["id"]] >= brk]
-            if rested:
-                best_in  = min(rested, key=lambda p: mins_on[p["id"]])
-                # Find most-played person currently on field
-                best_out = max((p for p in players if p["id"] in on_field),
-                               key=lambda p: mins_on[p["id"]])
-                # Only swap if the person coming off has genuinely played more
-                if mins_on[best_out["id"]] > mins_on[best_in["id"]]:
-                    on_field.remove(best_out["id"])
-                    last_off[best_out["id"]] = start
-                    on_field.append(best_in["id"])
+            # Who has been on continuously too long?
+            must_off = [
+                pid for pid in on_field
+                if stint_start[pid] is not None
+                and (start - stint_start[pid]) >= max_stint
+            ]
 
-            # Safety fill
-            for p in sorted(
-                [p for p in players if p["id"] not in on_field
-                 and start - last_off[p["id"]] >= brk],
-                key=lambda p: mins_on[p["id"]]
-            ):
+            # Available bench players sorted by least total time played
+            def rested_bench():
+                return sorted(
+                    [p for p in players if p["id"] not in on_field
+                     and start - last_off[p["id"]] >= brk],
+                    key=lambda p: mins_on[p["id"]]
+                )
+
+            # Force off anyone who has hit max_stint
+            bench = rested_bench()
+            for pid_out in must_off:
+                if not bench:
+                    break
+                p_in = bench.pop(0)
+                on_field.remove(pid_out)
+                last_off[pid_out]    = start
+                stint_start[pid_out] = None
+                on_field.append(p_in["id"])
+                stint_start[p_in["id"]] = start
+
+            # Voluntary fairness swap: most-played off for least-played bench
+            bench = rested_bench()
+            if bench:
+                best_in  = bench[0]
+                best_out = max(
+                    (p for p in players if p["id"] in on_field),
+                    key=lambda p: mins_on[p["id"]]
+                )
+                outgoing_stint = start - (stint_start[best_out["id"]] or start)
+                if (mins_on[best_out["id"]] > mins_on[best_in["id"]]
+                        and outgoing_stint >= brk):
+                    on_field.remove(best_out["id"])
+                    last_off[best_out["id"]]    = start
+                    stint_start[best_out["id"]] = None
+                    on_field.append(best_in["id"])
+                    stint_start[best_in["id"]] = start
+
+            # Safety fill — keep the field at the right number
+            for p in rested_bench():
                 if len(on_field) >= slots:
                     break
                 on_field.append(p["id"])
+                stint_start[p["id"]] = start
 
-            # Accumulate time and build segments
+            # Accumulate time and build/extend segments
             for pid in on_field:
                 mins_on[pid] += dur
                 segs = schedule[pid]
