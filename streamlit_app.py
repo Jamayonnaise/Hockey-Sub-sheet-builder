@@ -247,7 +247,7 @@ st.markdown(f"""
 <style>
   /* Remove default top padding that causes white bar */
   .stApp {{ background-color: {BG}; color: {TEXT}; }}
-  .block-container {{ padding-top: 0.5rem !important; background-color: {BG}; }}
+  .block-container {{ padding-top: 3.5rem !important; background-color: {BG}; }}
   header[data-testid="stHeader"] {{ background: {BG} !important; }}
   div[data-testid="stToolbar"] {{ background: {BG} !important; }}
 
@@ -323,18 +323,11 @@ tgt       = sum(fmt.values())
 
 # ── header ────────────────────────────────────────────────────────────────────
 
-h_col1, h_col2 = st.columns([5, 1])
-with h_col1:
-    st.markdown(
-        f'<div style="font-family:monospace;font-size:22px;font-weight:700;'
-        f'color:{TEXT};padding-top:4px">🏑 HOCKEY MANAGER</div>',
-        unsafe_allow_html=True
-    )
-with h_col2:
-    theme_label = "☀️ Light" if dark else "🌙 Dark"
-    if st.button(theme_label, use_container_width=True):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
+st.markdown(
+    f'<div style="font-family:monospace;font-size:22px;font-weight:700;'
+    f'color:{TEXT};padding-top:4px;margin-bottom:8px">🏑 HOCKEY MANAGER</div>',
+    unsafe_allow_html=True
+)
 
 tab_col1, tab_col2, _ = st.columns([1, 1, 8])
 with tab_col1:
