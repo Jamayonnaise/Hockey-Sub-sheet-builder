@@ -456,9 +456,9 @@ if st.session_state.tab == "squad":
     with col_add:
         c1, c2, c3 = st.columns([1, 4, 1])
         with c1:
-            new_num = st.text_input("", placeholder="#", label_visibility="collapsed", key="new_num")
+            new_num = st.text_input("Number", placeholder="#", label_visibility="collapsed", key="new_num")
         with c2:
-            new_name = st.text_input("", placeholder="Player name…", label_visibility="collapsed", key="new_name")
+            new_name = st.text_input("Name", placeholder="Player name…", label_visibility="collapsed", key="new_name")
         with c3:
             if st.button("➕ Add", use_container_width=True):
                 if new_name.strip():
@@ -544,7 +544,7 @@ elif st.session_state.tab == "match":
                         st.session_state.qm = m
                         st.rerun()
             with qm_cols[4]:
-                new_qm = st.number_input("", min_value=1, max_value=45,
+                new_qm = st.number_input("Custom minutes", min_value=1, max_value=45,
                                           value=st.session_state.qm,
                                           label_visibility="collapsed", key="qm_custom")
                 if new_qm != st.session_state.qm:
@@ -561,7 +561,7 @@ elif st.session_state.tab == "match":
                         st.session_state.brk = m
                         st.rerun()
             with brk_cols[5]:
-                new_brk = st.number_input("", min_value=1, max_value=20,
+                new_brk = st.number_input("Custom break", min_value=1, max_value=20,
                                            value=st.session_state.brk,
                                            label_visibility="collapsed", key="brk_custom")
                 if new_brk != st.session_state.brk:
@@ -584,7 +584,7 @@ elif st.session_state.tab == "match":
                 for i, pk in enumerate(POS_ORDER):
                     with cust_cols[i]:
                         st.caption(pk)
-                        v = st.number_input("", min_value=0, max_value=7,
+                        v = st.number_input("Count", min_value=0, max_value=7,
                                              value=cust.get(pk, 0),
                                              key=f"cust_{pk}",
                                              label_visibility="collapsed")
@@ -642,7 +642,7 @@ elif st.session_state.tab == "match":
                             pos_options = [""] + POS_ORDER
                             pos_labels  = ["Position…"] + [f"{k} — {POS[k]['label']}" for k in POS_ORDER]
                             cur_idx = pos_options.index(ppos) if ppos in pos_options else 0
-                            sel = st.selectbox("", pos_options, index=cur_idx,
+                            sel = st.selectbox("Position", pos_options, index=cur_idx,
                                                 format_func=lambda x: pos_labels[pos_options.index(x)],
                                                 key=f"pos_{p['id']}",
                                                 label_visibility="collapsed")
